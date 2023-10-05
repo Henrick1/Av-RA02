@@ -3,9 +3,6 @@ import java.util.Random;
 
 public class AVL {
     public static Nodes inserir(Nodes raiz, int numero) {
-        /*O procedimento de balanceamento deve ser
-        executado cada vez que um elemento é inserido
-        ou removido na árvore.*/
         if (raiz == null) {
             return new Nodes(numero);
         }
@@ -20,9 +17,9 @@ public class AVL {
         // Agora realizamos o balanceamento da árvore
         int estado = calcularAltura(raiz);
 
-        if(estado != 0){
-            System.out.println("O estado atual da arvore é: " + estado);
-        }
+        //if(estado != 0){
+            //System.out.println("O estado atual da arvore é: " + estado);
+        //}
 
         if(estado < -1){
             System.out.println("A subárvore da direita está maior do que a da esquerda!");
@@ -162,82 +159,77 @@ public class AVL {
         return false;
     }
 
-    public static Nodes removerElemento(Nodes raiz, int elemento){
-        /*O procedimento de balanceamento deve ser
-        executado cada vez que um elemento é inserido
-        ou removido na árvore.*/
-        if(raiz != null){
-            if(raiz.getInfo() == elemento){
-                System.out.println("Encontramos o número!");
-                // Encontramos o número certo
+    public static Nodes removerElemento(Nodes raiz, int elemento) {
+        if (raiz == null) {
+            return raiz;
+        }
 
-                // Verificamos se o node não possui filhos
-                if(raiz.getEsquerda() == null && raiz.getDireita() == null){
-                    return null;
-                }
+        if (elemento < raiz.getInfo()) {
+            raiz.setEsquerda(removerElemento(raiz.getEsquerda(), elemento));
+        } else if (elemento > raiz.getInfo()) {
+            raiz.setDireita(removerElemento(raiz.getDireita(), elemento));
+        } else {
+            // Encontrou o elemento a ser removido
 
-                // Aqui verificamos se ele tem um filho em alguma de suas raizes
-                if (raiz.getEsquerda() == null) {
-                    return raiz.getDireita();
-                } else if (raiz.getDireita() == null) {
-                    return raiz.getEsquerda();
-                }
-
-                // Calcule as alturas das subárvores esquerda e direita para ver qual lado da árvore estamos
-                int alturaEsquerda = encontrarPosicao(raiz.getEsquerda());
-                int alturaDireita = encontrarPosicao(raiz.getDireita());
-
-                // Escolha o elemento substituto com base na altura das subárvores
-                if (alturaEsquerda > alturaDireita) {
-                    // Substituir pelo maior elemento da subárvore esquerda
-                    Nodes maiorEsquerda = encontrarMaior(raiz.getEsquerda());
-                    raiz.setInfo(maiorEsquerda.getInfo());
-                    raiz.setEsquerda(removerElemento(raiz.getEsquerda(), maiorEsquerda.getInfo()));
+            // Verificar se o nó possui um ou nenhum filho
+            if (raiz.getEsquerda() == null || raiz.getDireita() == null) {
+                Nodes temp = null;
+                if (temp == raiz.getEsquerda()) {
+                    temp = raiz.getDireita();
                 } else {
-                    // Substituir pelo menor elemento da subárvore direita
-                    Nodes menorDireita = encontrarMenor(raiz.getDireita());
-                    raiz.setInfo(menorDireita.getInfo());
-                    raiz.setDireita(removerElemento(raiz.getDireita(), menorDireita.getInfo()));
+                    temp = raiz.getEsquerda();
                 }
 
-                // Agora realizamos o balanceamento da árvore
-                int estado = calcularAltura(raiz);
-
-                if(estado != 0){
-                    System.out.println("O estado atual da arvore é: " + estado);
+                // Se não tem filhos, apenas retorna o filho (pode ser nulo)
+                if (temp == null) {
+                    raiz = null;
+                } else {
+                    // Caso com um filho, copia o conteúdo do filho
+                    raiz = temp;
                 }
-
-                // Para ver como o balanceamento está agora como um elemento removido
-                int balanceamentoEsquerdo = calcularAltura(raiz.getEsquerda());
-                int balanceamentoDireito = calcularAltura(raiz.getDireita());
-
-                if(estado < -1){
-                    System.out.println("A subárvore da direita está maior do que a da esquerda!");
-                    if(balanceamentoDireito <= 0){
-                        return rotacaoEsquerda(raiz);
-                    } else{
-                        raiz.setDireita(rotacaoDireita(raiz.getDireita()));
-                        return rotacaoEsquerda(raiz);
-                    }
-                } else if (estado > 1) {
-                    System.out.println("A subárvore da esquerda está maior do que a da direita!");
-                    if(balanceamentoEsquerdo >= 0){
-                        return rotacaoDireita(raiz);
-                    } else{
-                        raiz.setEsquerda(rotacaoEsquerda(raiz.getEsquerda()));
-                        return rotacaoDireita(raiz);
-                    }
-                }
-
-            }
-            else if (elemento < raiz.getInfo()) {
-                // O elemento a ser removido está na subárvore esquerda já que e menor
-                raiz.setEsquerda(removerElemento(raiz.getEsquerda(), elemento));
             } else {
-                // O elemento a ser removido está na subárvore direita já que e maior
-                raiz.setDireita(removerElemento(raiz.getDireita(), elemento));
+                // Caso com dois filhos, encontrar o sucessor em ordem
+                Nodes temp = encontrarMenor(raiz.getDireita());
+
+                // Copiar o conteúdo do sucessor em ordem para este nó
+                raiz.setInfo(temp.getInfo());
+
+                // Remover o sucessor em ordem
+                raiz.setDireita(removerElemento(raiz.getDireita(), temp.getInfo()));
             }
         }
+
+        // Se a árvore tinha apenas um nó, retorne
+        if (raiz == null) {
+            return raiz;
+        }
+
+        // Verificar o fator de equilíbrio da raiz
+        int estado = calcularAltura(raiz);
+
+        // Realizar as rotações necessárias com base no fator de equilíbrio
+        if (estado > 1) {
+            if (raiz.getInfo() > raiz.getEsquerda().getInfo()) {
+                // Rotação à direita simples
+                return rotacaoDireita(raiz);
+            } else {
+                // Rotação à esquerda seguida por rotação à direita
+                raiz.setEsquerda(rotacaoEsquerda(raiz.getEsquerda()));
+                return rotacaoDireita(raiz);
+            }
+        }
+
+        if (estado < -1) {
+            if (raiz.getInfo() < raiz.getDireita().getInfo()) {
+                // Rotação à esquerda simples
+                return rotacaoEsquerda(raiz);
+            } else {
+                // Rotação à direita seguida por rotação à esquerda
+                raiz.setDireita(rotacaoDireita(raiz.getDireita()));
+                return rotacaoEsquerda(raiz);
+            }
+        }
+
         return raiz;
     }
 
